@@ -1,0 +1,53 @@
+{
+  "name": "Aula de Bioquímica - Zinc Spark",
+  "short_name": "BioquímicaZinc",
+  "description": "Aula interativa de bioquímica sobre zinc spark na fertilização humana com IA integrada",
+  "version": "1.0.0",
+  "start_url": "./aula_bioquimica_zinc_spark.html",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#2c5aa0",
+  "background_color": "#ecf0f1",
+  "scope": "./",
+  "lang": "pt-BR",
+  "categories": ["education", "science", "medical"],
+  "icons": [
+    {
+      "src": "./icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "features": [
+    "speech-recognition",
+    "text-to-speech",
+    "media-recording",
+    "offline-support"
+  ],
+  "permissions": [
+    "microphone",
+    "storage"
+  ],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Iniciar Aula",
+      "short_name": "Aula",
+      "description": "Iniciar aula de bioquímica",
+      "url": "./aula_bioquimica_zinc_spark.html",
+      "icons": [
+        {
+          "src": "./icons/icon-192.svg",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}
