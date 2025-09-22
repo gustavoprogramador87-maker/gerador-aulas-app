@@ -4,10 +4,16 @@ const CACHE_NAME = `scientific-lectures-v${CACHE_VERSION}`;
 
 // Recursos para cache
 const STATIC_RESOURCES = [
-    './gerador_aulas_cientificas.html',
+    './index.html',
     './manifest.json',
+    './js/auth-system.js',
+    './js/preferences-system.js',
+    './js/advanced-pdf-analyzer.js',
+    './js/lecture-library.js',
     './icons/icon-192.svg',
     './icons/icon-512.svg',
+    './icons/icon-192.png',
+    './icons/icon-512.png',
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.9.179/pdf.min.js',
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.9.179/pdf.worker.min.js'
 ];

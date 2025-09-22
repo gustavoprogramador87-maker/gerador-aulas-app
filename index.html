@@ -2,7 +2,14 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Gerador Aulas">
+    <meta name="application-name" content="Gerador Aulas">
+    <meta name="msapplication-TileColor" content="#2c5aa0">
+    <meta name="msapplication-tap-highlight" content="no">
     <title>Gerador de Aulas Científicas com IA - Versão 3.0</title>
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#2c5aa0">
@@ -10,21 +17,21 @@
     <!-- Service Worker para atualização automática -->
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./service-worker-bioquimica.js')
+            navigator.serviceWorker.register('./sw.js')
                 .then(registration => console.log('SW registrado:', registration))
                 .catch(error => console.log('Erro no SW:', error));
         }
     </script>
     
     <!-- Sistemas de autenticação e preferências -->
-    <script src="./auth-system.js" defer></script>
-    <script src="./preferences-system.js" defer></script>
+    <script src="./js/auth-system.js" defer></script>
+    <script src="./js/preferences-system.js" defer></script>
     
     <!-- Sistema de análise avançada de PDFs -->
-    <script src="./advanced-pdf-analyzer.js" defer></script>
+    <script src="./js/advanced-pdf-analyzer.js" defer></script>
     
     <!-- Biblioteca de aulas -->
-    <script src="./lecture-library.js" defer></script>
+    <script src="./js/lecture-library.js" defer></script>
     
     <!-- Inicialização dos sistemas -->
     <script defer>
@@ -251,6 +258,138 @@
              .upload-area h4 {
                  font-size: 1.2em;
                  margin-bottom: 10px;
+             }
+         }
+
+         /* Samsung S22 Ultra specific optimizations */
+         @media screen and (max-width: 428px) and (max-height: 926px) {
+             /* Samsung S22 Ultra: 428x926 CSS pixels */
+             .container {
+                 padding: 8px;
+                 max-width: 100%;
+             }
+             
+             .header {
+                 padding: 20px 15px;
+                 margin-bottom: 20px;
+             }
+             
+             .header h1 {
+                 font-size: 1.6em;
+                 margin-bottom: 8px;
+             }
+             
+             .header p {
+                 font-size: 0.9em;
+             }
+             
+             .upload-section, .config-panel, .progress-section, .results-section {
+                 padding: 20px 15px;
+                 margin-bottom: 20px;
+                 border-radius: 12px;
+             }
+             
+             .upload-area {
+                 padding: 25px 15px;
+                 border-radius: 10px;
+             }
+             
+             .btn {
+                 padding: 16px 24px;
+                 font-size: 16px;
+                 min-height: 52px;
+                 border-radius: 26px;
+                 margin: 6px 4px;
+             }
+             
+             /* Better touch targets for Samsung S22 Ultra */
+             .config-item input, .config-item select {
+                 padding: 16px 12px;
+                 font-size: 16px;
+                 min-height: 52px;
+                 border-radius: 12px;
+             }
+             
+             /* Optimize for Samsung's One UI */
+             .header div[style*="display: flex"] {
+                 flex-direction: column;
+                 gap: 15px;
+                 align-items: center;
+             }
+             
+             .header div[style*="margin-top: 15px"] {
+                 margin-top: 10px;
+                 justify-content: center;
+                 gap: 10px;
+             }
+             
+             .header div[style*="margin-top: 15px"] a,
+             .header div[style*="margin-top: 15px"] button {
+                 padding: 12px 16px;
+                 font-size: 14px;
+                 border-radius: 16px;
+                 min-height: 44px;
+             }
+         }
+
+         /* High DPI displays (Samsung S22 Ultra has 516 PPI) */
+         @media (-webkit-min-device-pixel-ratio: 3), (min-resolution: 3dppx) {
+             .upload-area {
+                 border-width: 1px;
+             }
+             
+             .btn {
+                 border: 1px solid rgba(255,255,255,0.1);
+             }
+             
+             .config-item input, .config-item select {
+                 border-width: 1px;
+             }
+         }
+
+         /* Dark mode support for Samsung devices */
+         @media (prefers-color-scheme: dark) {
+             :root {
+                 --bg: #1a1a1a;
+                 --card: #2d2d2d;
+                 --text: #ffffff;
+                 --border: #404040;
+             }
+             
+             .status-log {
+                 background: #2d2d2d;
+                 color: #ffffff;
+             }
+             
+             .module-preview, .sources-list {
+                 background: #2d2d2d;
+                 border-color: #404040;
+             }
+             
+             .source-item {
+                 background: #3d3d3d;
+             }
+         }
+
+         /* Landscape orientation for Samsung S22 Ultra */
+         @media screen and (orientation: landscape) and (max-height: 428px) {
+             .header {
+                 padding: 15px;
+                 margin-bottom: 15px;
+             }
+             
+             .header h1 {
+                 font-size: 1.4em;
+             }
+             
+             .upload-section, .config-panel {
+                 padding: 15px;
+                 margin-bottom: 15px;
+             }
+             
+             .config-grid {
+                 grid-template-columns: repeat(2, 1fr);
+                 gap: 15px;
              }
          }
     </style>

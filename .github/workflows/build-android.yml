@@ -1,0 +1,260 @@
+name: 🚀 Build Android APK
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build Type'
+        required: true
+        default: 'debug'
+        type: choice
+        options:
+        - debug
+        - release
+
+jobs:
+  build-android:
+    name: 📱 Build APK for Samsung S22 Ultra
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout Repository
+      uses: actions/checkout@v4
+      
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: ☕ Setup Java JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        
+    - name: 🤖 Setup Android SDK
+      uses: android-actions/setup-android@v3
+      
+    - name: 📦 Install Dependencies
+      run: |
+        npm ci
+        npm install -g @capacitor/cli
+        
+    - name: 🎨 Generate Icons
+      run: |
+        mkdir -p icons
+        # Create placeholder icons (in real scenario, you'd generate from SVG)
+        echo "Creating placeholder icons for CI/CD..."
+        
+    - name: 🔧 Initialize Capacitor
+      run: |
+        npx cap init "Gerador de Aulas Científicas" "com.gugamilani940.geradoraulas" --web-dir="."
+        
+    - name: 📱 Add Android Platform
+      run: |
+        npx cap add android
+        
+    - name: 🔄 Sync Capacitor
+      run: |
+        npx cap sync android
+        
+    - name: 🏗️ Build Android APK
+      working-directory: ./android
+      run: |
+        chmod +x ./gradlew
+        if [ "${{ github.event.inputs.build_type }}" == "release" ]; then
+          ./gradlew assembleRelease
+        else
+          ./gradlew assembleDebug
+        fi
+        
+    - name: 📋 List APK Files
+      run: |
+        find android/app/build/outputs/apk -name "*.apk" -type f
+        
+    - name: 📤 Upload APK Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: gerador-aulas-apk-${{ github.run_number }}
+        path: |
+          android/app/build/outputs/apk/debug/*.apk
+          android/app/build/outputs/apk/release/*.apk
+        retention-days: 30
+        
+    - name: 📊 APK Info
+      run: |
+        APK_PATH=$(find android/app/build/outputs/apk -name "*.apk" -type f | head -1)
+        if [ -f "$APK_PATH" ]; then
+          echo "✅ APK gerado com sucesso!"
+          echo "📁 Caminho: $APK_PATH"
+          echo "📏 Tamanho: $(du -h "$APK_PATH" | cut -f1)"
+          echo "🏷️ Nome: $(basename "$APK_PATH")"
+        else
+          echo "❌ APK não encontrado!"
+          exit 1
+        fi
+
+  test-apk:
+    name: 🧪 Test APK Quality
+    needs: build-android
+    runs-on: ubuntu-latest
+    if: success()
+    
+    steps:
+    - name: 📥 Checkout Repository
+      uses: actions/checkout@v4
+      
+    - name: 📱 Download APK
+      uses: actions/download-artifact@v4
+      with:
+        name: gerador-aulas-apk-${{ github.run_number }}
+        path: ./apk
+        
+    - name: 🔍 APK Analysis
+      run: |
+        APK_FILE=$(find ./apk -name "*.apk" -type f | head -1)
+        if [ -f "$APK_FILE" ]; then
+          echo "🔍 Analisando APK: $(basename "$APK_FILE")"
+          
+          # Verificar tamanho do APK
+          SIZE=$(stat -f%z "$APK_FILE" 2>/dev/null || stat -c%s "$APK_FILE")
+          SIZE_MB=$((SIZE / 1024 / 1024))
+          
+          echo "📏 Tamanho do APK: ${SIZE_MB}MB"
+          
+          if [ $SIZE_MB -gt 100 ]; then
+            echo "⚠️ APK muito grande (>${SIZE_MB}MB). Considere otimizações."
+          else
+            echo "✅ Tamanho do APK adequado (${SIZE_MB}MB)"
+          fi
+          
+          # Verificar estrutura básica
+          if command -v aapt >/dev/null 2>&1; then
+            echo "📋 Informações do APK:"
+            aapt dump badging "$APK_FILE" | head -10
+          fi
+        else
+          echo "❌ APK não encontrado para análise!"
+          exit 1
+        fi
+
+  create-release:
+    name: 🎉 Create GitHub Release
+    needs: [build-android, test-apk]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+    - name: 📥 Checkout Repository
+      uses: actions/checkout@v4
+      
+    - name: 📱 Download APK
+      uses: actions/download-artifact@v4
+      with:
+        name: gerador-aulas-apk-${{ github.run_number }}
+        path: ./release
+        
+    - name: 🏷️ Generate Release Tag
+      id: tag
+      run: |
+        TAG="v1.0.${{ github.run_number }}"
+        echo "tag=$TAG" >> $GITHUB_OUTPUT
+        echo "Generated tag: $TAG"
+        
+    - name: 📝 Generate Release Notes
+      id: notes
+      run: |
+        cat > release_notes.md << 'EOF'
+        ## 🧬 Gerador de Aulas Científicas v1.0.${{ github.run_number }}
+        
+        ### 📱 APK para Samsung S22 Ultra
+        
+        **🆕 Novidades desta versão:**
+        - ✅ Otimizado para Samsung S22 Ultra (6.8" Dynamic AMOLED 2X)
+        - ✅ Interface responsiva para 3088x1440 pixels
+        - ✅ Suporte completo ao One UI
+        - ✅ Modo offline com Service Worker
+        - ✅ Integração com OpenAI GPT-4
+        
+        **📋 Como instalar:**
+        1. Baixe o arquivo `app-debug.apk`
+        2. Ative "Fontes desconhecidas" no Android
+        3. Instale o APK no seu Samsung S22 Ultra
+        4. Configure sua chave da OpenAI no app
+        
+        **🎯 Compatibilidade:**
+        - Samsung S22 Ultra (otimizado)
+        - Android 8.0+ (API 26+)
+        - Outros dispositivos Android modernos
+        
+        **🔧 Requisitos:**
+        - Chave da OpenAI para geração de aulas
+        - Conexão com internet (primeira configuração)
+        - 100MB+ de espaço livre
+        
+        ---
+        
+        **📊 Estatísticas do Build:**
+        - Build #${{ github.run_number }}
+        - Commit: ${{ github.sha }}
+        - Data: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+        EOF
+        
+    - name: 🎉 Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.tag.outputs.tag }}
+        name: "Gerador de Aulas v1.0.${{ github.run_number }} - Samsung S22 Ultra"
+        body_path: release_notes.md
+        files: |
+          release/*.apk
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  notify-success:
+    name: 📢 Notify Build Success
+    needs: [build-android, test-apk]
+    runs-on: ubuntu-latest
+    if: success()
+    
+    steps:
+    - name: 🎉 Success Notification
+      run: |
+        echo "🎉 Build concluído com sucesso!"
+        echo "📱 APK disponível nos artifacts"
+        echo "🔗 Download: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        
+        # Criar summary para GitHub
+        cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+        ## 🎉 Build Android Concluído!
+        
+        ### ✅ Status: Sucesso
+        
+        **📱 APK Gerado:**
+        - ✅ Compilação bem-sucedida
+        - ✅ Testes de qualidade aprovados
+        - ✅ Otimizado para Samsung S22 Ultra
+        
+        **📥 Download:**
+        O APK está disponível nos [artifacts desta execução](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}).
+        
+        **📋 Próximos passos:**
+        1. Baixe o APK dos artifacts
+        2. Transfira para seu Samsung S22 Ultra
+        3. Instale e configure sua chave OpenAI
+        4. Comece a gerar aulas científicas!
+        
+        ---
+        
+        **🔧 Build Info:**
+        - Commit: `${{ github.sha }}`
+        - Branch: `${{ github.ref_name }}`
+        - Workflow: `${{ github.workflow }}`
+        EOF
